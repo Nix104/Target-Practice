@@ -50,7 +50,7 @@
         Score: <span id="score">0</span>
         <button id="reloadBtn">Reload [R]</button>
     </div>
-    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <canvas id="gameCanvas" width="1000" height="563"></canvas>
 
     <script>
         class Game {
@@ -78,10 +78,34 @@
                     maxTargets: 5,         // Maximum targets on screen
                     magazineSize: 5        // Rounds per magazine
                 };
-                
-                this.setupEventListeners();
-                this.spawnTargetInterval = setInterval(() => this.spawnTarget(), this.settings.targetInterval);
-                requestAnimationFrame(() => this.gameLoop());
+
+                // Create video background
+                this.background = document.createElement('video');
+                this.background.src = 'videos/green-field.mp4';
+                this.background.loop = true;
+                this.background.autoplay = true;
+                this.background.muted = true;
+
+                // Start game when video is ready
+                this.background.addEventListener('loadeddata', () => {
+                    // Calculate scaling to fit canvas while maintaining aspect ratio
+                    this.bgScale = Math.min(
+                        this.canvas.width / this.background.videoWidth,
+                        this.canvas.height / this.background.videoHeight
+                    );
+
+                    // Calculate position to center the background
+                    this.bgX = (this.canvas.width - this.background.videoWidth * this.bgScale) / 2;
+                    this.bgY = (this.canvas.height - this.background.videoHeight * this.bgScale) / 2;
+
+                    // Start the game
+                    this.setupEventListeners();
+                    this.spawnTargetInterval = setInterval(() => this.spawnTarget(), this.settings.targetInterval);
+                    requestAnimationFrame(() => this.gameLoop());
+                    
+                    // Start playing the video
+                    this.background.play();
+                });
             }
             
             setupEventListeners() {
@@ -143,6 +167,20 @@
             
             draw() {
                 this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+                // Draw scaled and centered background
+                const scaledWidth = this.background.videoWidth * this.bgScale;
+                const scaledHeight = this.background.videoHeight * this.bgScale;
+
+                this.ctx.drawImage(
+                    this.background,
+                    this.bgX,
+                    this.bgY,
+                    scaledWidth,
+                    scaledHeight
+                );
+
+                // Draw targets
                 this.state.targets.forEach(target => target.draw(this.ctx));
             }
             
@@ -163,11 +201,24 @@
             endGame() {
                 this.state.isGameOver = true;
                 clearInterval(this.spawnTargetInterval);
+
+                // Draw background
+                const scaledWidth = this.background.videoWidth * this.bgScale;
+                const scaledHeight = this.background.videoHeight * this.bgScale;
+
+                this.ctx.drawImage(
+                    this.background,
+                    this.bgX,
+                    this.bgY,
+                    scaledWidth,
+                    scaledHeight
+                );
                 
-                // Draw game over screen
+                // Darken overlay
                 this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
                 this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
                 
+                // Game over text
                 this.ctx.fillStyle = 'white';
                 this.ctx.font = '48px Arial';
                 this.ctx.textAlign = 'center';
@@ -191,6 +242,7 @@
                 this.imageData = imageData;
                 this.bounced = false;
                 this.bounceDamping = 0.6;
+                this.canvas = this.canvas;
             }
 
             update() {
@@ -286,13 +338,13 @@
                 const scale = size / 100;
 
                 const rings = [
-                    { radius: 50, color: 'rgb(255, 255, 51)' },
-                    { radius: 42.5, color: 'rgb(253, 23, 0)' },
-                    { radius: 35, color: 'white' },
-                    { radius:27.5, color: 'black' },
-                    { radius:20, color: 'white' },
-                    { radius: 12.5, color: 'black' }, 
-                    { radius: 5, color: 'rgb(64, 171, 191)' }
+                    { radius: 50 * scale, color: 'rgb(255, 255, 51)' },
+                    { radius: 42.5 * scale, color: 'rgb(253, 23, 0)' },
+                    { radius: 35 * scale, color: 'white' },
+                    { radius:27.5 * scale, color: 'black' },
+                    { radius:20 * scale, color: 'white' },
+                    { radius: 12.5 * scale, color: 'black' }, 
+                    { radius: 5 * scale, color: 'rgb(64, 171, 191)' }
                 ];
 
                 rings.forEach(ring => {
