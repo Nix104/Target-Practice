@@ -189,6 +189,8 @@
                 this.gravity = 0.5;
                 this.size = size;
                 this.imageData = imageData;
+                this.bounced = false;
+                this.bounceDamping = 0.6;
             }
 
             update() {
@@ -197,6 +199,14 @@
                 this.x += this.velocityX;
                 this.y += this.velocityY;
                 this.angle += this.rotationSpeed;
+
+                // Check for bounce at bottom of canvas
+                if (this.y + this.size/2 > this.canvas.height && !this.bounced) {
+                    this.velocityY = -Math.abs(this.velocityY) * this.bounceDamping;
+                    this.velocityX *= this.bounceDamping;
+                    this.rotationSpeed *= this.bounceDamping;
+                    this.bounced = true;
+                }
             }
 
             draw(ctx) {
@@ -256,13 +266,15 @@
                     pieceCtx.restore();
 
                     // Create piece with physics
-                    this.pieces.push(new TargetPiece(
+                    const piece = new TargetPiece(
                         this.x + offsetX + pieceSize/2,
                         this.y + offsetY + pieceSize/2,
                         Math.random() * Math.PI * 2,
                         pieceSize,
                         pieceCanvas
-                    ));
+                    );
+                    piece.canvas = this.canvas;
+                    this.pieces.push(piece);
                 });
 
                 this.destroyed = true;
