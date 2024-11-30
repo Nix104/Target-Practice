@@ -17,10 +17,44 @@
             border-radius: 8px;
             margin: 10px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #heartsContainer {
+            display: flex;
+            gap: 5px;
+        }
+
+        .heart {
+            width: 24px;
+            height: 24px;
+            transition: filter 0.3s ease;
+        }
+
+        .heart.lost {
+            filter: brightness(0);
+        }
+
+        #ammoContainer {
+            display: flex;
+            gap: 5px;
+            margin-left: 4px;
+        }
+
+        .ammo {
+            width: 24px;
+            height: 24px;
+            transition: filter 0.3s ease;
+        }
+
+        .ammo.used {
+            filter: brightness(0);
         }
         
         #gameCanvas {
-            border: 3px solid #333;
+            border: 4px solid #333;
             border-radius: 8px;
             cursor: crosshair;
             background-color: #fff;
@@ -44,22 +78,32 @@
     </style>
 </head>
 <body>
+    <canvas id="gameCanvas" width="1000" height="563"></canvas>
     <div id="gameInfo">
-        Lives: <span id="lives">3</span> | 
-        Ammo: <span id="ammo">5</span>/5 |
-        Score: <span id="score">0</span>
+        Lives:
+        <div id="heartsContainer">
+            <img src="images\heart.png" class="heart" alt="life">
+            <img src="images\heart.png" class="heart" alt="life">
+            <img src="images\heart.png" class="heart" alt="life">
+        | Ammo :
+        <div id="ammoContainer">
+            <img src="images/bullet.png" class="ammo" alt="ammo">
+            <img src="images/bullet.png" class="ammo" alt="ammo">
+            <img src="images/bullet.png" class="ammo" alt="ammo">
+            <img src="images/bullet.png" class="ammo" alt="ammo">
+            <img src="images/bullet.png" class="ammo" alt="ammo">
+        </div>
+        | Score: <span id="score">0</span>
         <button id="reloadBtn">Reload [R]</button>
     </div>
-    <canvas id="gameCanvas" width="1000" height="563"></canvas>
-
     <script>
         class Game {
             constructor() {
                 this.canvas = document.getElementById('gameCanvas');
                 this.ctx = this.canvas.getContext('2d');
                 this.displays = {
-                    lives: document.getElementById('lives'),
-                    ammo: document.getElementById('ammo'),
+                    hearts: Array.from(document.getElementsByClassName('heart')),
+                    ammoIcons: Array.from(document.getElementsByClassName('ammo')),
                     score: document.getElementById('score'),
                     reloadBtn: document.getElementById('reloadBtn')
                 };
@@ -107,6 +151,16 @@
                     this.background.play();
                 });
             }
+
+            updateHearts() {
+                this.displays.hearts.forEach((heart, index) => {
+                    if (index < this.state.lives) {
+                        heart.classList.remove('lost');
+                    } else {
+                        heart.classList.add('lost');
+                    }
+                });
+            }
             
             setupEventListeners() {
                 // Shooting mechanic
@@ -118,12 +172,32 @@
                     if (event.key.toLowerCase() === 'r') this.reload();
                 });
             }
+
+            // updateAmmo() {
+            //     this.displays.ammo.forEach((ammo, index) => {
+            //         if (index < this.state.ammo) {
+            //             ammo.classList.remove('used');
+            //         } else {
+            //             ammo.classList.add('used');
+            //         }
+            //     });
+            // }
+
+            updateAmmoDisplay() {
+                this.displays.ammoIcons.forEach((ammoIcon, index) => {
+                    if (index < this.state.ammo) {
+                        ammoIcon.classList.remove('used');
+                    } else {
+                        ammoIcon.classList.add('used');
+                    }                    
+                })
+            }
             
             handleShot(event) {
                 if (this.state.isGameOver || this.state.ammo <= 0) return;
                 
                 this.state.ammo--;
-                this.displays.ammo.textContent = this.state.ammo;
+                this.updateAmmoDisplay();
                 this.displays.reloadBtn.disabled = false;
                 
                 const rect = this.canvas.getBoundingClientRect();
@@ -142,7 +216,7 @@
             
             reload() {
                 this.state.ammo = this.settings.magazineSize;
-                this.displays.ammo.textContent = this.state.ammo;
+                this.updateAmmoDisplay();
                 this.displays.reloadBtn.disabled = true;
             }
             
@@ -158,7 +232,7 @@
                 this.state.targets = this.state.targets.filter(target => {
                     if (target.active && now - target.timeCreated > this.settings.targetTimeout) {
                         this.state.lives--;
-                        this.displays.lives.textContent = this.state.lives;
+                        this.updateHearts();
                         return false;
                     }
                     return target.active || now - target.timeCreated < this.settings.targetTimeout + 500; // Keep expired targets briefly
