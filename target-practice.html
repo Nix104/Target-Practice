@@ -85,6 +85,7 @@
             <img src="images\heart.png" class="heart" alt="life">
             <img src="images\heart.png" class="heart" alt="life">
             <img src="images\heart.png" class="heart" alt="life">
+        </div>
         | Ammo :
         <div id="ammoContainer">
             <img src="images/bullet.png" class="ammo" alt="ammo">
@@ -113,15 +114,29 @@
                     ammo: 5,
                     score: 0,
                     targets: [],
-                    isGameOver: false
+                    isGameOver: false,
+                    scorePopups: []
                 };
                 
                 this.settings = {
                     targetTimeout: 3000,    // Time to hit target (ms)
                     targetInterval: 2000,   // Time between targets (ms)
-                    maxTargets: 5,         // Maximum targets on screen
-                    magazineSize: 5        // Rounds per magazine
+                    maxTargets: 5,          // Maximum targets on screen
+                    magazineSize: 5,        // Rounds per magazine
+
+                    // Difficulty progression
+                    difficultyInterval: 40000,
+                    minTargetTimeout: 2000,
+                    minTargetInterval: 1200,
+                    maxTargetsLimit: 10,
+                    speedIncrease: 50,
+                    targetIncrease: 1
                 };
+
+                // Difficulty tracking
+                this.difficultyTimer = 0;
+                this.lastUpdate = Date.now();
+                this.lastDifficultyUpdate = Date.now();
 
                 // Create video background
                 this.background = document.createElement('video');
@@ -150,6 +165,57 @@
                     // Start playing the video
                     this.background.play();
                 });
+            }
+
+            updateDifficulty() {
+                const currentTime = Date.now();
+                const deltaTime = currentTime - this.lastDifficultyUpdate;
+
+                this.difficultyTimer += deltaTime;
+
+                // Check if its time for difficulty increase
+                if (this.difficultyTimer >= this.settings.difficultyInterval) {
+                    this.difficultyTimer = 0;
+
+                    // Decrease target timeout
+                    if (this.settings.targetTimeout > this.settings.minTargetTimeout) {
+                        this.settings.targetTimeout -= this.settings.speedIncrease;
+                    }
+
+                    // Decrease spawn interval
+                    if (this.settings.targetInterval > this.settings.minTargetInterval) {
+                        this.settings.targetInterval -= this.settings.speedIncrease;
+                        // Update spawn interval
+                        clearInterval(this.spawnTargetInterval);
+                        this.spawnTargetInterval = setInterval(
+                            () => this.spawnTarget(),
+                            this.settings.targetInterval
+                        );
+                    }
+
+                    // Increase max targets
+                    if (this.settings.maxTargets < this.settings.maxTargetsLimit) {
+                        this.settings.maxTargets += this.settings.targetIncrease;
+                    }
+
+                    // Show difficulty increase notification
+                    this.showDifficultyIncrease();
+                }
+            }
+
+            showDifficultyIncrease() {
+                // Add visual feedback for difficulty increase
+                this.ctx.save();
+                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                this.ctx.font = '24px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText('Difficulty Increased!', this.canvas.width/2, 50);
+                this.ctx.restore();
+
+                // Remove notification after 2 sec
+                setTimeout(() => {
+                    // next frame clears text
+                }, 2000);
             }
 
             updateHearts() {
@@ -210,6 +276,13 @@
                         target.active = false;
                         this.state.score += 100;
                         this.displays.score.textContent = this.state.score;
+
+                        // Score popup
+                        this.state.scorePopups.push(new ScorePopup(
+                            target.x + target.size/2, // Center of target
+                            target.y - 20, // Above target
+                            100
+                        ));
                     }
                 });
             }
@@ -256,6 +329,12 @@
 
                 // Draw targets
                 this.state.targets.forEach(target => target.draw(this.ctx));
+
+                // Update and draw score popups
+                this.state.scorePopups = this.state.scorePopups.filter(popup => {
+                    popup.update();
+                    return popup.draw(this.ctx);
+                });
             }
             
             gameLoop() {
@@ -263,9 +342,15 @@
                     this.endGame();
                     return;
                 }
+
+                const currentTime = Date.now();
+                const deltaTime = currentTime - this.lastUpdate;
                 
+                this.updateDifficulty();
                 this.updateTargets();
                 this.draw();
+
+                this.lastUpdate = currentTime;
                 
                 if (!this.state.isGameOver) {
                     requestAnimationFrame(() => this.gameLoop());
@@ -474,6 +559,36 @@
                 const dx = x - (this.x + this.size/2);
                 const dy = y - (this.y + this.size/2);
                 return dx * dx + dy * dy <= (this.size/2) * (this.size/2);
+            }
+        }
+
+        class ScorePopup {
+            constructor(x, y, score) {
+                this.x = x;
+                this.y = y;
+                this.value = `+${score}`;
+                this.life = 1.0; // Fade out
+                this.velocity = -4; // Move up
+                this.fontSize = 36;
+            }
+
+            update() {
+                this.life -= 0.02;
+                this.y += this.velocity;
+                this.fontSize *= 0.98;
+            }
+
+            draw(ctx) {
+                if (this.life <= 0) return false;
+
+                ctx.save();
+                ctx.fillStyle = `rgba(255, 0, 0, ${this.life})`;
+                ctx.font = `${this.fontSize}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.fillText(this.value, this.x, this.y);
+                ctx.restore();
+
+                return true;
             }
         }
 
