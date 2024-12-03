@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Target Practice</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        
+        #gameInfo {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #heartsContainer {
+            display: flex;
+            gap: 5px;
+        }
+
+        .heart {
+            width: 24px;
+            height: 24px;
+            transition: filter 0.3s ease;
+        }
+
+        .heart.lost {
+            filter: brightness(0);
+        }
+
+        #ammoContainer {
+            display: flex;
+            gap: 5px;
+            margin-left: 4px;
+        }
+
+        .ammo {
+            width: 24px;
+            height: 24px;
+            transition: filter 0.3s ease;
+        }
+
+        .ammo.used {
+            filter: brightness(0);
+        }
+        
+        #gameCanvas {
+            border: 4px solid #333;
+            border-radius: 8px;
+            cursor: crosshair;
+            background-color: #fff;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="1000" height="563"></canvas>
+    <div id="gameInfo">
+        Lives:
+        <div id="heartsContainer">
+            <img src="assets/images/heart.png" class="heart" alt="life">
+            <img src="assets/images/heart.png" class="heart" alt="life">
+            <img src="assets/images/heart.png" class="heart" alt="life">
+        </div>
+        | Ammo:
+        <div id="ammoContainer">
+            <img src="assets/images/bullet.png" class="ammo" alt="ammo">
+            <img src="assets/images/bullet.png" class="ammo" alt="ammo">
+            <img src="assets/images/bullet.png" class="ammo" alt="ammo">
+            <img src="assets/images/bullet.png" class="ammo" alt="ammo">
+            <img src="assets/images/bullet.png" class="ammo" alt="ammo">
+        </div>
+        | Score: <span id="score">0</span>
+        <button id="reloadBtn">Reload [R]</button>
+    </div>
+    
+    <script src="scripts/score_popup.js"></script>
+    <script src="scripts/target_piece.js"></script>
+    <script src="scripts/target.js"></script>
+    <script src="scripts/game.js"></script>
+    <script>game = new Game();</script> 
+</body>
+</html>
