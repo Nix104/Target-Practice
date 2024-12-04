@@ -1,4 +1,4 @@
-"# Target-Practice" 
+# Target-Practice
 
 Target Code: Came from stack overflow but cannot find it again right now.
 
