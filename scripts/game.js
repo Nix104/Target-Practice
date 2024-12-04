@@ -25,10 +25,10 @@ class Game {
             magazineSize: 5,        // Rounds per magazine
 
             // Difficulty progression
-            difficultyInterval: 40000,
+            difficultyInterval: 20000,
             minTargetTimeout: 2000,
             minTargetInterval: 1200,
-            maxTargetsLimit: 10,
+            maxTargetsLimit: 15,
             speedIncrease: 50,
             targetIncrease: 1
         };
