@@ -10,6 +10,16 @@ class Target {
         this.destroyed = false;
         this.canvas = canvas;
 
+        this.rings = [
+            { radius: 5, color: 'rgb(64, 171, 191)', score: 200 },
+            { radius: 12.5, color: 'black', score: 150 },
+            { radius: 20, color: 'white', score: 100 },
+            { radius: 27.5, color: 'black', score: 80 },
+            { radius: 35, color: 'white', score: 60 },
+            { radius: 42.5, color: 'rgb(253, 23, 0)', score: 40 },
+            { radius: 50, color: 'rgb(255, 255, 51)', score: 20 }
+        ];
+
         // Create offscreen cavas for target pieces
         this.offscreenCanvas = document.createElement('canvas');
         this.offscreenCanvas.width = this.size;
@@ -59,24 +69,34 @@ class Target {
         const centerY = size / 2;
         const scale = size / 100;
 
-        const rings = [
-            { radius: 50 * scale, color: 'rgb(255, 255, 51)' },
-            { radius: 42.5 * scale, color: 'rgb(253, 23, 0)' },
-            { radius: 35 * scale, color: 'white' },
-            { radius:27.5 * scale, color: 'black' },
-            { radius:20 * scale, color: 'white' },
-            { radius: 12.5 * scale, color: 'black' }, 
-            { radius: 5 * scale, color: 'rgb(64, 171, 191)' }
-        ];
-
-        rings.forEach(ring => {
+        // Draw rings from outside in
+        this.rings.slice().reverse().forEach(ring => {
             ctx.beginPath();
-            ctx.arc(centerX, centerY, ring.radius, 0, Math.PI * 2);
+            ctx.arc(centerX, centerY, ring.radius * scale, 0, Math.PI * 2);
             ctx.fillStyle = ring.color;
             ctx.fill();
             ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
             ctx.stroke();
         });
+
+        // const rings = [
+        //     { radius: 50 * scale, color: 'rgb(255, 255, 51)' },
+        //     { radius: 42.5 * scale, color: 'rgb(253, 23, 0)' },
+        //     { radius: 35 * scale, color: 'white' },
+        //     { radius:27.5 * scale, color: 'black' },
+        //     { radius:20 * scale, color: 'white' },
+        //     { radius: 12.5 * scale, color: 'black' }, 
+        //     { radius: 5 * scale, color: 'rgb(64, 171, 191)' }
+        // ];
+
+        // rings.forEach(ring => {
+        //     ctx.beginPath();
+        //     ctx.arc(centerX, centerY, ring.radius, 0, Math.PI * 2);
+        //     ctx.fillStyle = ring.color;
+        //     ctx.fill();
+        //     ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+        //     ctx.stroke();
+        // });
     }
     
     draw(ctx) {
@@ -118,9 +138,30 @@ class Target {
     }
     
     checkHit(x, y) {
-        if (this.destroyed) return false;
-        const dx = x - (this.x + this.size/2);
-        const dy = y - (this.y + this.size/2);
-        return dx * dx + dy * dy <= (this.size/2) * (this.size/2);
+        if (this.destroyed) return { hit: false, score: 0 };
+        
+        // Calculate distance from center of target
+        const centerX = this.x + this.size/2;
+        const centerY = this.y + this.size/2;
+        const dx = x - centerX;
+        const dy = y - centerY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        // Convert distance to target relative scale
+        const relativeDistance = distance / (this.size/100);
+
+        // Check each ring from inside out
+        for (const ring of this.rings) {
+            if (relativeDistance <= ring.radius) {
+                return {
+                    hit: true,
+                    score: ring.score,
+                    ringColor: ring.color,
+                    ringRadius: ring.radius
+                };
+            }
+        }
+
+        return { hit: false, score: 0 };
     }
 }

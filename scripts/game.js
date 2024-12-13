@@ -20,22 +20,22 @@ class Game {
         
         this.settings = {
             targetTimeout: 3000,    // Time to hit target (ms)
-            targetInterval: 2000,   // Time between targets (ms)
-            maxTargets: 5,          // Maximum targets on screen
+            targetInterval: 2500,   // Time between targets (ms)
+            maxTargets: 3,          // Maximum targets on screen
             magazineSize: 5,        // Rounds per magazine
 
             // Difficulty progression
-            difficultyInterval: 20000,
+            difficultyInterval: 30000,
             minTargetTimeout: 2000,
-            minTargetInterval: 1200,
-            maxTargetsLimit: 15,
-            speedIncrease: 50,
+            minTargetInterval: 1500,
+            maxTargetsLimit: 8,
+            speedIncrease: 100,
             targetIncrease: 1
         };
 
         // Difficulty tracking
-        this.difficultyTimer = 0;
-        this.lastUpdate = Date.now();
+        // this.difficultyTimer = 0;
+        // this.lastUpdate = Date.now();
         this.lastDifficultyUpdate = Date.now();
 
         // Create video background
@@ -69,38 +69,45 @@ class Game {
 
     updateDifficulty() {
         const currentTime = Date.now();
-        const deltaTime = currentTime - this.lastDifficultyUpdate;
+        // const deltaTime = currentTime - this.lastDifficultyUpdate;
 
-        this.difficultyTimer += deltaTime;
+        if (currentTime - this.lastDifficultyUpdate >= this.settings.difficultyInterval) {
+            this.lastDifficultyUpdate = currentTime;
 
-        // Check if its time for difficulty increase
-        if (this.difficultyTimer >= this.settings.difficultyInterval) {
-            this.difficultyTimer = 0;
-
-            // Decrease target timeout
+            // Gradual timeout decrease
             if (this.settings.targetTimeout > this.settings.minTargetTimeout) {
-                this.settings.targetTimeout -= this.settings.speedIncrease;
+                this.settings.targetTimeout = Math.max(
+                    this.settings.targetTimeout - this.settings.speedIncrease,
+                    this.settings.minTargetTimeout
+                );
             }
+        }
 
-            // Decrease spawn interval
-            if (this.settings.targetInterval > this.settings.minTargetInterval) {
-                this.settings.targetInterval -= this.settings.speedIncrease;
-                // Update spawn interval
+        // this.difficultyTimer += deltaTime;
+
+        // Gradual interval decrease
+        if (this.settings.targetInterval > this.settings.minTargetInterval) {
+            const newInterval = Math.max(
+                this.settings.targetInterval - this.settings.speedIncrease,
+                this.settings.minTargetInterval
+            );
+
+            if (newInterval != this.settings.targetInterval) {
+                this.settings.targetInterval = newInterval;
                 clearInterval(this.spawnTargetInterval);
                 this.spawnTargetInterval = setInterval(
                     () => this.spawnTarget(),
                     this.settings.targetInterval
                 );
             }
-
-            // Increase max targets
-            if (this.settings.maxTargets < this.settings.maxTargetsLimit) {
-                this.settings.maxTargets += this.settings.targetIncrease;
-            }
-
-            // Show difficulty increase notification
-            this.showDifficultyIncrease();
         }
+            
+        // Gradual target increase
+        if (this.settings.maxTargets < this.settings.maxTargetsLimit) {
+            this.settings.maxTargets += this.settings.targetIncrease;
+        }
+        
+        this.showDifficultyIncrease();            
     }
 
     showDifficultyIncrease() {
@@ -162,17 +169,20 @@ class Game {
         
         // Check for hits
         this.state.targets.forEach(target => {
-            if (target.active && target.checkHit(x, y)) {
-                target.active = false;
-                this.state.score += 100;
-                this.displays.score.textContent = this.state.score;
+            if (target.active) {
+                const hitResult = target.checkHit(x, y);
+                if (hitResult.hit) {
+                    target.active = false;
+                    this.state.score += hitResult.score;
+                    this.displays.score.textContent = this.state.score;
 
-                // Score popup
-                this.state.scorePopups.push(new ScorePopup(
-                    target.x + target.size/2, // Center of target
-                    target.y - 20, // Above target
-                    100
-                ));
+                    // Score popup with actual score
+                    this.state.scorePopups.push(new ScorePopup(
+                        target.x + target.size/2,
+                        target.y - 20,
+                        hitResult.score
+                    ));
+                }
             }
         });
     }
