@@ -10,7 +10,9 @@ Bullet: https://www.flaticon.com/free-icon/bullet_224681?term=bullet&page=1&posi
 
 Some concepts learned: https://developer.mozilla.org/en-US/docs/Games/Tutorials/2D_Breakout_game_pure_JavaScript
 
+# Not Implemented
+======================
+
 mousing tracking: https://codepen.io/bbenti/pen/zYxGZqE
 
 "Hunting Rifle" (https://skfb.ly/TZvV) by Charlie Tinley is licensed under Creative Commons Attribution (http://creativecommons.org/licenses/by/4.0/).
-
