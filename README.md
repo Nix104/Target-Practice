@@ -12,3 +12,5 @@ Some concepts learned: https://developer.mozilla.org/en-US/docs/Games/Tutorials/
 
 mousing tracking: https://codepen.io/bbenti/pen/zYxGZqE
 
+"Hunting Rifle" (https://skfb.ly/TZvV) by Charlie Tinley is licensed under Creative Commons Attribution (http://creativecommons.org/licenses/by/4.0/).
+
