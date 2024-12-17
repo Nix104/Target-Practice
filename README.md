@@ -1,5 +1,7 @@
 # Target-Practice
 
+Overview: This is my code for a target practice game inspired by dunt hunt.
+
 Target Generation Code: Came from Stack Overflow.
 
 Background: https://motionbgs.com/green-field
