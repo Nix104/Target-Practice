@@ -1,6 +1,6 @@
 # Target-Practice
 
-Target Code: Came from stack overflow but cannot find it again right now.
+Target Generation Code: Came from Stack Overflow.
 
 Background: https://motionbgs.com/green-field
 
